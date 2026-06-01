@@ -1,4 +1,6 @@
-# Glossary — Java OOP (Chapters 6–9)
+# Glossary — Java OOP
+
+> Schildt terms (Ch 6–9) below; Effective Java terms (Bloch, Items 10–25) at the end.
 
 **Abstract class** — a class with one or more abstract methods; cannot be instantiated, but can be a reference type (Ch 8).
 **Abstract method** — a method declared with no body (`abstract type name(params);`) that every concrete subclass must override; "subclasser responsibility" (Ch 8).
@@ -64,3 +66,28 @@
 **Type signature** — method name + parameter types; identity used for overriding (Ch 8).
 **Varargs (`...`)** — variable-length argument list received as an array; must be the last, single such parameter (Ch 7).
 **`var` (type inference)** — local variable type inferred from initializer; uses *declared* type, not runtime object type (Ch 7–8).
+
+---
+
+## Effective Java terms (Bloch, Items 10–25)
+
+**Comparator construction methods** — fluent builders (`Comparator.comparingInt(...).thenComparingInt(...)`) for `compareTo`/`compare`; preferred over `<`/`>` (EJ Item 14).
+**Conversion constructor / factory** — a copy constructor/factory whose argument is an interface, letting the client choose the copy's implementation type, e.g. `new TreeSet<>(s)` (EJ Item 13).
+**Constant interface (antipattern)** — interface of only constants, implemented to import names; leaks implementation into the API — use a utility class/enum instead (EJ Item 22).
+**Copy constructor / copy factory** — `Foo(Foo f)` / `static Foo newInstance(Foo f)`; the recommended alternative to `Cloneable`/`clone` (EJ Item 13).
+**Decorator pattern** — a wrapper class that adds behavior to a wrapped instance (EJ Item 18).
+**Defensive copy** — copying a client-supplied or returned mutable object so callers can't alter internal state (EJ Items 15, 17, 50).
+**Forwarding method** — a method that delegates to the corresponding method on a contained (wrapped) instance; basis of composition (EJ Item 18).
+**Functional approach** — operations return a new instance instead of mutating; method names are prepositions (`plus`) not verbs (`add`) (EJ Item 17).
+**General contract** — the behavioral spec a method (`equals`, `hashCode`, `toString`, `compareTo`) must obey so dependent classes work (EJ Items 10–14).
+**Immutable class** — instances cannot be modified after construction; the 5 rules: no mutators, no extension, all fields `final` + `private`, exclusive access to mutable components (EJ Item 17).
+**Information hiding** — synonym for encapsulation: hide implementation, communicate via API (EJ Item 15).
+**Mixin** — a type a class implements *in addition to* its primary type to declare optional behavior, e.g. `Comparable` (EJ Item 20).
+**Natural ordering** — the ordering a class declares by implementing `Comparable.compareTo` (EJ Item 14).
+**Significant field** — a field that participates in `equals` (and therefore must be in `hashCode`) (EJ Items 10–11).
+**Simulated multiple inheritance** — implementing an interface by forwarding to a private inner class that extends its skeletal implementation (EJ Item 20).
+**Skeletal implementation** — an abstract class (named `AbstractXxx`) implementing an interface's non-primitive methods atop its primitives; the Template Method pattern (EJ Item 20).
+**Tagged class** — a class with a tag field + `switch` selecting flavor-specific behavior/fields; replace with a class hierarchy (EJ Item 23).
+**Template Method pattern** — the pattern realized by a skeletal implementation (EJ Item 20).
+**Value class** — a class representing a value (like `Integer`, `String`); the prime case for overriding `equals`/`hashCode`/`Comparable` (EJ Items 10, 14).
+**Wrapper class** — a class that contains ("wraps") an instance of another and forwards to it; composition's robust alternative to subclassing (EJ Item 18).

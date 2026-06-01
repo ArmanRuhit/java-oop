@@ -1,4 +1,6 @@
-# Patterns & Techniques — Java OOP (Chapters 6–9)
+# Patterns & Techniques — Java OOP
+
+> Schildt mechanics (Ch 6–9) below; Effective Java best-practice patterns (Bloch, Items 10–25) at the end.
 
 ## Encapsulation (data + controlled interface)
 **When to use**: any class whose internal data should not be tampered with from outside.
@@ -84,3 +86,57 @@
 **When to use**: choosing the abstraction mechanism.
 **How**: pick **interface** when unrelated classes must share a contract or a class needs multiple supertypes (multiple `implements`); pick **abstract class** when you need shared *state* (instance variables) or partial concrete implementation in one hierarchy.
 **Trade-offs**: interfaces can't hold state and a class has only one superclass; abstract classes can't be multiply inherited.
+
+---
+
+# Effective Java patterns (Bloch, Items 10–25)
+
+## `equals` / `hashCode` recipe
+**When to use**: any **value class** with logical equality (Items 10–11).
+**How**: `equals` — `==` self-check → `instanceof` → cast → compare each **significant** field (`Float.compare`/`Double.compare` for floats). `hashCode` — `int result = firstFieldHash;` then `result = 31 * result + Type.hashCode(field);` per remaining significant field. Override both together; use `@Override`.
+**Trade-offs**: must include exactly the fields used in `equals`; `Objects.hash(...)` is a slower one-liner. Cache the hash for immutables if costly.
+
+## Copy constructor / copy factory (instead of `clone`)
+**When to use**: you need to copy objects (Item 13) — almost always prefer this to `Cloneable`.
+**How**: `public Foo(Foo f) { ... }` or `static Foo newInstance(Foo f)`. Take an interface type for a **conversion** constructor (`new TreeSet<>(collection)`).
+**Trade-offs**: no extralinguistic object creation, no checked exceptions, no casts, no conflict with `final` fields. Arrays are the one place `clone()` is preferred.
+
+## Implement `Comparable` with comparator construction methods
+**When to use**: a value class with a natural ordering (Item 14).
+**How**: `Comparator.comparingInt(...).thenComparingInt(...)` built once as a `static final`, then `return COMPARATOR.compare(this, pn);`. Or compare most-significant field first, returning on first nonzero.
+**Trade-offs**: fluent and readable, ~10% slower than hand-written; **never** use `<`/`>` or difference-based `a - b` (overflow breaks transitivity).
+
+## Immutable class (5 rules + functional methods)
+**When to use**: small value objects, and as the default for any class without a compelling reason to be mutable (Item 17).
+**How**: no mutators; prevent extension (`final` class, or private constructors + static factories); all fields `private final`; defensively copy mutable components in/out. Operations return new instances (`plus`, not `add`).
+**Trade-offs**: thread-safe, freely shareable, great map keys, failure-atomic; cost is a new object per value (offer a mutable companion like `StringBuilder` if multistep ops are hot).
+
+## Composition + forwarding (wrapper class / Decorator)
+**When to use**: augmenting a class's behavior when you'd otherwise subclass it, especially across package boundaries (Item 18).
+**How**: implement the same interface; hold a `private final` field of that interface; forward each method to it; override the few you're enhancing. Split out a reusable `ForwardingXxx` class.
+**Trade-offs**: robust (immune to superclass changes) and flexible (wraps any implementation); not suitable for callback frameworks (SELF problem); some forwarding boilerplate.
+
+## Design for inheritance — or prohibit it
+**When to use**: deciding whether a class may be subclassed (Item 19).
+**How**: if yes — document self-use (`@implSpec`), expose minimal `protected` hooks, and **never call overridable methods from constructors/`clone`/`readObject`**; test with ≥3 subclasses. If no — make the class `final` or use private constructors + static factories.
+**Trade-offs**: designing for inheritance is a permanent API commitment; prohibiting is safer for ordinary concrete classes.
+
+## Skeletal implementation (Template Method)
+**When to use**: shipping a nontrivial interface (Item 20).
+**How**: interface defines the type + `default` methods atop primitive operations; an abstract `AbstractXxx` class implements the rest. Implementers extend the skeleton, or forward to a private inner class extending it (simulated multiple inheritance).
+**Trade-offs**: most of the implementation work done for implementers, without abstract-class type constraints; you can't provide `default` methods for `Object` methods (`equals`/`hashCode`/`toString`).
+
+## Class hierarchy instead of a tagged class
+**When to use**: a class whose instances come in flavors selected by a tag field + `switch` (Item 23).
+**How**: abstract root with an abstract method per tag-dependent behavior; one concrete subclass per flavor with its own fields/overrides.
+**Trade-offs**: compiler-enforced completeness, `final` fields, real types per flavor, extensible; replaces error-prone `switch` boilerplate.
+
+## Static member class (over nonstatic)
+**When to use**: any member class that doesn't need a reference to the enclosing instance (Item 24).
+**How**: add `static` to the member class declaration (e.g. a `private static class Entry`).
+**Trade-offs**: avoids the hidden enclosing-instance reference (space + time + memory-leak risk). Use nonstatic only for Adapters/views that genuinely need the outer instance.
+
+## Export constants without a constant interface
+**When to use**: you need shared constants (Item 22).
+**How**: put them on the related class/interface, an `enum`, or a noninstantiable **utility class** (private constructor); `static import` if used heavily.
+**Trade-offs**: keeps constants out of the type's API; avoids namespace pollution of the constant-interface antipattern.
